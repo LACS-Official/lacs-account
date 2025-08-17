@@ -24,7 +24,7 @@ const getAllowedOrigins = (): string[] => {
     return origins.split(',').map(origin => origin.trim());
   }
   // 默认值作为后备
-  return ['http://localhost:3000', 'https://appweb.lacs.cc'];
+  return ['http://localhost:3000', 'https://app.lacs.cc'];
 };
 
 export default function CrossDomainLoginPage() {
@@ -123,8 +123,9 @@ export default function CrossDomainLoginPage() {
         window.location.href = redirectUrl;
       }
 
-    } catch (error: any) {
-      setError(error.message || '登录失败，请重试');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '登录失败，请重试';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +145,7 @@ export default function CrossDomainLoginPage() {
   };
 
   // 生成认证令牌（简化版本）
-  const generateAuthToken = (user: any): string => {
+  const generateAuthToken = (user: { id: string; email?: string; user_metadata?: { username?: string } }): string => {
     const payload = {
       id: user.id,
       email: user.email,

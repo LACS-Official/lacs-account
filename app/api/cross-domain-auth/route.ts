@@ -5,7 +5,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 
 // 环境变量配置
 const config = {
@@ -43,7 +42,7 @@ function setCorsHeaders(response: NextResponse, origin: string) {
 /**
  * 生成认证令牌
  */
-function generateAuthToken(user: any): string {
+function generateAuthToken(user: { id: string; email?: string; user_metadata?: { username?: string } }): string {
   const payload = {
     id: user.id,
     email: user.email,
@@ -59,7 +58,7 @@ function generateAuthToken(user: any): string {
 /**
  * 验证认证令牌
  */
-function validateAuthToken(token: string): any | null {
+function validateAuthToken(token: string): { id: string; email?: string; username?: string; timestamp: number; expiresAt: number } | null {
   try {
     const payload = JSON.parse(Buffer.from(token, 'base64').toString());
     
@@ -117,7 +116,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { action, returnUrl, origin: requestOrigin } = body;
+    const { action, origin: requestOrigin } = body;
     
     // 再次验证请求来源
     if (!validateOrigin(requestOrigin)) {
@@ -211,7 +210,7 @@ export async function GET(request: NextRequest) {
 /**
  * 处理登录请求
  */
-async function handleLogin(body: any) {
+async function handleLogin(body: { email: string; password: string; returnUrl?: string }) {
   const { email, password, returnUrl } = body;
   
   try {
@@ -234,7 +233,7 @@ async function handleLogin(body: any) {
     const authToken = generateAuthToken(data.user);
     
     // 构建返回URL
-    const redirectUrl = buildRedirectUrl(returnUrl, {
+    const redirectUrl = returnUrl ? buildRedirectUrl(returnUrl, {
       loginSuccess: 'true',
       authToken: authToken,
       userInfo: encodeURIComponent(JSON.stringify({
@@ -243,7 +242,7 @@ async function handleLogin(body: any) {
         email: data.user.email,
         avatar: data.user.user_metadata?.avatar_url,
       }))
-    });
+    }) : undefined;
 
     return {
       success: true,
@@ -269,8 +268,8 @@ async function handleLogin(body: any) {
 /**
  * 处理登出请求
  */
-async function handleLogout(body: any) {
-  const { token, returnUrl } = body;
+async function handleLogout(body: { returnUrl?: string }) {
+  const { returnUrl } = body;
   
   try {
     const supabase = await createClient();
@@ -278,9 +277,9 @@ async function handleLogout(body: any) {
     // 执行登出
     await supabase.auth.signOut();
     
-    const redirectUrl = buildRedirectUrl(returnUrl, {
+    const redirectUrl = returnUrl ? buildRedirectUrl(returnUrl, {
       logoutSuccess: 'true'
-    });
+    }) : undefined;
 
     return {
       success: true,
@@ -299,7 +298,7 @@ async function handleLogout(body: any) {
 /**
  * 处理令牌验证请求
  */
-async function handleVerify(body: any) {
+async function handleVerify(body: { token: string }) {
   const { token } = body;
   
   try {
@@ -334,7 +333,7 @@ async function handleVerify(body: any) {
 /**
  * 处理获取用户信息请求
  */
-async function handleGetUserInfo(body: any) {
+async function handleGetUserInfo(body: { token: string }) {
   const { token } = body;
   
   try {
@@ -349,7 +348,7 @@ async function handleGetUserInfo(body: any) {
 
     // 可以从数据库获取更详细的用户信息
     const supabase = await createClient();
-    const { data: user, error } = await supabase
+    const { data: user } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', payload.id)
