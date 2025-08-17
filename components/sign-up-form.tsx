@@ -14,7 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
+
+interface CrossDomainParams {
+  returnUrl?: string;
+  origin?: string;
+  timestamp?: string;
+  crossDomain?: string;
+}
 
 export function SignUpForm({
   className,
@@ -26,7 +34,42 @@ export function SignUpForm({
   const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [crossDomainParams, setCrossDomainParams] = useState<CrossDomainParams>({});
   const router = useRouter();
+
+  useEffect(() => {
+    // 检查是否来自跨域登录页面
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('returnUrl');
+    const origin = urlParams.get('origin');
+    const timestamp = urlParams.get('timestamp');
+    const crossDomain = urlParams.get('crossDomain');
+
+    if (returnUrl || origin || crossDomain) {
+      setCrossDomainParams({
+        returnUrl: returnUrl || undefined,
+        origin: origin || undefined,
+        timestamp: timestamp || undefined,
+        crossDomain: crossDomain || undefined,
+      });
+    }
+  }, []);
+
+  const handleBack = () => {
+    if (crossDomainParams.returnUrl && crossDomainParams.origin) {
+      // 返回跨域登录页面
+      const params = new URLSearchParams();
+      if (crossDomainParams.returnUrl) params.set('returnUrl', crossDomainParams.returnUrl);
+      if (crossDomainParams.origin) params.set('origin', crossDomainParams.origin);
+      if (crossDomainParams.timestamp) params.set('timestamp', crossDomainParams.timestamp);
+      if (crossDomainParams.crossDomain) params.set('crossDomain', crossDomainParams.crossDomain);
+
+      router.push(`/cross-domain-login?${params.toString()}`);
+    } else {
+      // 返回普通登录页面
+      router.push('/auth/login');
+    }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,13 +232,30 @@ export function SignUpForm({
                 </div>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "创建账户中..." : "注册"}
-              </Button>
+              <div className="flex space-x-2">
+                <Button type="submit" className="flex-1" disabled={isLoading}>
+                  {isLoading ? "创建账户中..." : "注册"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  返回
+                </Button>
+              </div>
             </div>
             <div className="mt-4 text-center text-sm">
               已有账户？{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link
+                href={crossDomainParams.returnUrl && crossDomainParams.origin
+                  ? `/cross-domain-login?returnUrl=${encodeURIComponent(crossDomainParams.returnUrl)}&origin=${encodeURIComponent(crossDomainParams.origin)}&crossDomain=true${crossDomainParams.timestamp ? `&timestamp=${crossDomainParams.timestamp}` : ''}`
+                  : "/auth/login"
+                }
+                className="underline underline-offset-4"
+              >
                 立即登录
               </Link>
             </div>
