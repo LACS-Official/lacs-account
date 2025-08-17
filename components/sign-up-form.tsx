@@ -172,6 +172,7 @@ export function SignUpForm({
                 <div className="mt-4 p-4 bg-muted rounded-lg">
                   <div className="flex flex-col md:flex-row gap-4 items-center">
                     <div className="flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/img/qrcode_for_gh_a00e889e59b3_258.jpg"
                         alt="微信公众号二维码"
@@ -181,7 +182,7 @@ export function SignUpForm({
                     <div className="flex-1 text-center md:text-left">
                       <h4 className="font-medium text-sm mb-2">如何获取邀请码？</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        扫描二维码关注公众号，点击底部"领创账号"，再点击"获取邀请码"获取
+                        扫描二维码关注公众号，点击底部&quot;领创账号&quot;，再点击&quot;获取邀请码&quot;获取
                       </p>
                     </div>
                   </div>

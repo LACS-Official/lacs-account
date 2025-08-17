@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateInviteCode } from '@/lib/invite-codes';
 
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     const supabase = await createClient();
     

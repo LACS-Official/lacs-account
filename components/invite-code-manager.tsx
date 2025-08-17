@@ -92,7 +92,7 @@ export function InviteCodeManager() {
     try {
       await navigator.clipboard.writeText(code);
       setMessage(`邀请码 ${code} 已复制到剪贴板`);
-    } catch (error) {
+    } catch {
       setMessage('复制失败');
     }
   };

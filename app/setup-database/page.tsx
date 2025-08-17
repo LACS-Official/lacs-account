@@ -30,7 +30,7 @@ export default function SetupDatabasePage() {
           <CardHeader>
             <CardTitle>步骤 2: 打开 SQL 编辑器</CardTitle>
             <CardDescription>
-              在您的项目中，点击左侧菜单的 "SQL Editor"
+              在您的项目中，点击左侧菜单的 &quot;SQL Editor&quot;
             </CardDescription>
           </CardHeader>
         </Card>
